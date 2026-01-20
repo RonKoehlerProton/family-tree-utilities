@@ -34,6 +34,10 @@
                         Command="{Binding TitleCommand}"
                         Padding="10,5"
                         Margin="2"/>
+                <Button Content="Same Last Name" 
+                        Command="{Binding SameLastNameCommand}"
+                        Padding="10,5"
+                        Margin="2"/>
             </ToolBar>
         </ToolBarTray>
 
