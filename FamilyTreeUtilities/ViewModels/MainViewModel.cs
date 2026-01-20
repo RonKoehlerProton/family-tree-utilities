@@ -105,10 +105,14 @@ namespace FamilyTreeUtilities.ViewModels
                     {
                         currentName = line.Substring(7).Trim();
 
-                        // Remove slashes used for surname delimiter in GEDCOM
-                        currentName = currentName.Replace("/", "").Trim();
+                        // Replace slashes with spaces, then clean up extra spaces
+                        currentName = currentName.Replace("/", " ").Trim();
+                        while (currentName.Contains("  "))
+                        {
+                            currentName = currentName.Replace("  ", " ");
+                        }
 
-                        // Check if name has only one word (no spaces)
+                        // Check if name has only one word (no spaces after cleanup)
                         if (!string.IsNullOrWhiteSpace(currentName) && !currentName.Contains(" "))
                         {
                             // Extract ID from person line
@@ -134,6 +138,7 @@ namespace FamilyTreeUtilities.ViewModels
                 MessageBox.Show($"Error reading GEDCOM file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void ExecuteTitle(object parameter)
         {
