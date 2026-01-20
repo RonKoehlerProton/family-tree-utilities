@@ -1,0 +1,52 @@
+﻿<Window x:Class="FamilyTreeUtilities.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewmodels="clr-namespace:FamilyTreeUtilities.ViewModels"
+        mc:Ignorable="d"
+        Title="Ron's Family Tree Utilities" 
+        Height="450" 
+        Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <viewmodels:MainViewModel/>
+    </Window.DataContext>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_New" Command="{Binding NewCommand}"/>
+                <MenuItem Header="_Open" Command="{Binding OpenCommand}"/>
+                <MenuItem Header="_Save" Command="{Binding SaveCommand}"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Button Content="One Name" 
+                        Command="{Binding OneNameCommand}"
+                        Padding="10,5"
+                        Margin="2"/>
+                <Button Content="Title" 
+                        Command="{Binding TitleCommand}"
+                        Padding="10,5"
+                        Margin="2"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <Grid>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock Text="{Binding DisplayText}" 
+                           HorizontalAlignment="Left" 
+                           VerticalAlignment="Top"
+                           FontSize="12"
+                           FontFamily="Consolas"
+                           Margin="10"
+                           TextWrapping="Wrap"/>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</Window>
