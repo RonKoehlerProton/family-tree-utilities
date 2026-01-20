@@ -18,7 +18,8 @@ namespace FamilyTreeUtilities.ViewModels
             SaveCommand = new RelayCommand(ExecuteSave);
             ExitCommand = new RelayCommand(ExecuteExit);
             OneNameCommand = new RelayCommand(ExecuteOneName, CanExecuteFileCommands);
-            TitleCommand = new RelayCommand(ExecuteTitle, CanExecuteFileCommands);
+            TitleCommand = new RelayCommand(ExecuteTitle);
+            TitleCodesCommand = new RelayCommand(ExecuteTitleCodes);
             SameLastNameCommand = new RelayCommand(ExecuteSameLastName, CanExecuteFileCommands);
 
             DisplayText = "Welcome to Ron's Family Tree Utilities";
@@ -30,6 +31,7 @@ namespace FamilyTreeUtilities.ViewModels
         public ICommand ExitCommand { get; }
         public ICommand OneNameCommand { get; }
         public ICommand TitleCommand { get; }
+        public ICommand TitleCodesCommand { get; }
         public ICommand SameLastNameCommand { get; }
 
         public string DisplayText
@@ -143,7 +145,147 @@ namespace FamilyTreeUtilities.ViewModels
 
         private void ExecuteTitle(object parameter)
         {
-            MessageBox.Show("Title command executed", "Info");
+            if (string.IsNullOrEmpty(_currentFilePath))
+            {
+                MessageBox.Show("Please open a GEDCOM file first.", "No File Loaded", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                string appRoot = System.AppDomain.CurrentDomain.BaseDirectory;
+                string titleCodesFile = System.IO.Path.Combine(appRoot, "TitleCodesList.txt");
+
+                // Check if title codes file exists
+                if (!System.IO.File.Exists(titleCodesFile))
+                {
+                    MessageBox.Show("TitleCodesList.txt not found. Please create it first using Utility -> Title Codes.",
+                        "File Not Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                // Read title codes from file
+                var titleCodes = new System.Collections.Generic.List<string>();
+                foreach (var line in System.IO.File.ReadAllLines(titleCodesFile))
+                {
+                    string trimmed = line.Trim();
+                    // Skip empty lines and comments
+                    if (!string.IsNullOrWhiteSpace(trimmed) && !trimmed.StartsWith("#"))
+                    {
+                        titleCodes.Add(trimmed);
+                    }
+                }
+
+                if (titleCodes.Count == 0)
+                {
+                    MessageBox.Show("No title codes found in TitleCodesList.txt. Please add some title codes.",
+                        "No Codes", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // Search GEDCOM file for people with titles
+                var peopleWithTitles = new System.Collections.Generic.List<string>();
+                var lines = System.IO.File.ReadAllLines(_currentFilePath);
+
+                string currentPerson = null;
+
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    string line = lines[i].Trim();
+
+                    // Check for individual record
+                    if (line.StartsWith("0") && line.Contains("INDI"))
+                    {
+                        currentPerson = line;
+                    }
+                    // Check for NAME tag
+                    else if (line.StartsWith("1 NAME") && currentPerson != null)
+                    {
+                        string fullName = line.Substring(7).Trim();
+
+                        // Replace slashes with spaces for searching
+                        string searchName = fullName.Replace("/", " ").Trim();
+                        while (searchName.Contains("  "))
+                        {
+                            searchName = searchName.Replace("  ", " ");
+                        }
+
+                        // Check if name contains any title codes
+                        foreach (var title in titleCodes)
+                        {
+                            // Use word boundary matching to avoid partial matches
+                            // Check if title appears as a complete word (surrounded by spaces or at start/end)
+                            bool isWholeWord = false;
+
+                            // Split name into words
+                            var words = searchName.Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+
+                            foreach (var word in words)
+                            {
+                                if (word.Equals(title, System.StringComparison.OrdinalIgnoreCase))
+                                {
+                                    isWholeWord = true;
+                                    break;
+                                }
+                            }
+
+                            if (isWholeWord)
+                            {
+                                // Extract ID from person line
+                                string id = currentPerson.Split(' ')[1].Replace("@", "");
+                                peopleWithTitles.Add($"{id}: {searchName} (contains '{title}')");
+                                break; // Only add once per person
+                            }
+                        }
+
+                        currentPerson = null;
+                    }
+                }
+
+                // Display results
+                if (peopleWithTitles.Count > 0)
+                {
+                    DisplayText = $"People with Titles in Their Names ({peopleWithTitles.Count} found):\n\n";
+                    DisplayText += string.Join("\n", peopleWithTitles);
+                }
+                else
+                {
+                    DisplayText = "No people found with title codes in their names.";
+                }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error searching for titles: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExecuteTitleCodes(object parameter)
+        {
+            try
+            {
+                string appRoot = System.AppDomain.CurrentDomain.BaseDirectory;
+                string titleCodesFile = System.IO.Path.Combine(appRoot, "TitleCodesList.txt");
+
+                // Create the file if it doesn't exist
+                if (!System.IO.File.Exists(titleCodesFile))
+                {
+                    System.IO.File.WriteAllText(titleCodesFile, "# Title Codes - One per line\n# Examples:\nDr.\nMr.\nMrs.\nMs.\nProf.\nRev.\n");
+                }
+
+                // Open the file with the default text editor
+                var process = new System.Diagnostics.Process
+                {
+                    StartInfo = new System.Diagnostics.ProcessStartInfo(titleCodesFile)
+                    {
+                        UseShellExecute = true
+                    }
+                };
+                process.Start();
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Error opening Title Codes file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private void ExecuteSameLastName(object parameter)

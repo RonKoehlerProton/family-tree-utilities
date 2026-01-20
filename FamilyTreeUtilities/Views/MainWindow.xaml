@@ -22,6 +22,9 @@
                 <Separator/>
                 <MenuItem Header="E_xit" Command="{Binding ExitCommand}"/>
             </MenuItem>
+            <MenuItem Header="_Utility">
+                <MenuItem Header="Title _Codes" Command="{Binding TitleCodesCommand}"/>
+            </MenuItem>
         </Menu>
 
         <ToolBarTray DockPanel.Dock="Top">
