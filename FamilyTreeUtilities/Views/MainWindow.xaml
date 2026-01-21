@@ -41,6 +41,10 @@
                         Command="{Binding SameLastNameCommand}"
                         Padding="10,5"
                         Margin="2"/>
+                <Button Content="Child Name Mismatch" 
+                        Command="{Binding ChildNameMismatchCommand}"
+                        Padding="10,5"
+                        Margin="2"/>
             </ToolBar>
         </ToolBarTray>
 
